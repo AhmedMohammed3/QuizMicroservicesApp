@@ -1,0 +1,82 @@
+package online.ahassan.quizservice.controllers;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import online.ahassan.quizservice.dto.QuestionDto;
+import online.ahassan.quizservice.dto.QuizDto;
+import online.ahassan.quizservice.dto.QuizResponse;
+import online.ahassan.quizservice.dto.SubmissionQuestionDto;
+import online.ahassan.quizservice.services.QuizService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/quiz")
+@RequiredArgsConstructor
+@Slf4j
+public class QuizController {
+
+    private final QuizService quizService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<QuizDto> getQuizMetadata(@PathVariable Integer id) {
+        try {
+            QuizDto quiz = quizService.getQuiz(id);
+            return ResponseEntity.ok(quiz);
+        } catch (IllegalArgumentException e) {
+            log.error("Error fetching quiz metadata", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            log.error("Error fetching quiz metadata", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/{id}/questions")
+    public ResponseEntity<Page<QuestionDto>> getQuizQuestions(@PathVariable Integer id, Pageable pageable) {
+        try {
+            Page<QuestionDto> questions = quizService.getQuizQuestions(id, pageable);
+            return ResponseEntity.ok(questions);
+        } catch (IllegalArgumentException e) {
+            log.error("Error fetching quiz questions", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("Error fetching quiz questions", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    @PostMapping
+    public ResponseEntity<QuizDto> createQuiz(@RequestBody QuizDto quizDto) {
+        try {
+            QuizDto savedQuiz = quizService.createQuiz(quizDto);
+            log.info("Quiz created successfully: {}", savedQuiz.getTitle());
+            return ResponseEntity.ok(savedQuiz);
+        } catch (Exception e) {
+            log.error("Error adding quiz", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<QuizResponse> submitQuiz(@PathVariable Integer id, @RequestBody List<SubmissionQuestionDto> submissionQuestions) {
+        try {
+            QuizResponse quizResponse = quizService.calculateResult(id, submissionQuestions);
+            log.info("Quiz submitted successfully");
+            return ResponseEntity.ok(quizResponse);
+        } catch (IllegalArgumentException e) {
+            log.error("Error submitting quiz", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            log.error("Error submitting quiz", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+}
