@@ -3,8 +3,10 @@ package online.ahassan.questionservice.dto;
 import lombok.Data;
 import online.ahassan.questionservice.entities.QuizQuestion;
 
+import java.io.Serializable;
+
 @Data
-public class QuizQuestionDto {
+public class QuizQuestionDto implements Serializable {
     private Integer questionId;
     private Integer quizId;
 

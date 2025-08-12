@@ -3,6 +3,7 @@ package online.ahassan.questionservice.controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import online.ahassan.questionservice.dto.QuestionDto;
+import online.ahassan.questionservice.dto.QuestionRequestDto;
 import online.ahassan.questionservice.dto.QuizQuestionDto;
 import online.ahassan.questionservice.entities.QuestionOptions;
 import online.ahassan.questionservice.services.QuestionService;
@@ -42,9 +43,9 @@ public class QuestionController {
     }
 
     @PostMapping
-    public ResponseEntity<QuestionDto> addQuestion(@RequestBody QuestionDto questionDto) {
+    public ResponseEntity<QuestionDto> addQuestion(@RequestBody QuestionRequestDto questionRequestDto) {
         try {
-            QuestionDto createdQuestion = questionService.addQuestion(questionDto);
+            QuestionDto createdQuestion = questionService.addQuestion(questionRequestDto);
             log.info("Question added successfully: {}", createdQuestion.getQuestionTitle());
             return ResponseEntity.ok(createdQuestion);
         } catch (Exception e) {
@@ -53,13 +54,10 @@ public class QuestionController {
         }
     }
 
-    /**
-     * PUT - Full update (replace entire resource)
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<QuestionDto> replaceQuestion(@PathVariable Integer id, @RequestBody QuestionDto questionDto) {
+    public ResponseEntity<QuestionDto> replaceQuestion(@PathVariable Integer id, @RequestBody QuestionRequestDto questionRequestDto) {
         try {
-            QuestionDto updatedQuestion = questionService.replaceQuestion(id, questionDto);
+            QuestionDto updatedQuestion = questionService.replaceQuestion(id, questionRequestDto);
             return ResponseEntity.ok(updatedQuestion);
         } catch (IllegalArgumentException e) {
             log.error("Error replacing question", e);
@@ -70,9 +68,6 @@ public class QuestionController {
         }
     }
 
-    /**
-     * PATCH - Partial update
-     */
     @PatchMapping("/{id}")
     public ResponseEntity<QuestionDto> updateQuestion(@PathVariable Integer id, @RequestBody QuestionDto questionDto) {
         try {

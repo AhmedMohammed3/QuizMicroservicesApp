@@ -3,9 +3,7 @@ package online.ahassan.questionservice.services;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import online.ahassan.questionservice.dto.QuestionDto;
-import online.ahassan.questionservice.dto.QuestionOptionDto;
-import online.ahassan.questionservice.dto.QuizQuestionDto;
+import online.ahassan.questionservice.dto.*;
 import online.ahassan.questionservice.entities.Question;
 import online.ahassan.questionservice.entities.QuestionOptions;
 import online.ahassan.questionservice.entities.QuizQuestion;
@@ -67,7 +65,7 @@ public class QuestionService {
         return result.map(QuestionDto::fromEntity);
     }
 
-    public QuestionDto addQuestion(QuestionDto questionDto) {
+    public QuestionDto addQuestion(QuestionRequestDto questionDto) {
         log.info("Adding new question: {}", questionDto.getQuestionTitle());
         Question createdQuestion = questionRepository.save(questionDto.toEntity());
         return QuestionDto.fromEntity(createdQuestion);
@@ -77,7 +75,7 @@ public class QuestionService {
      * PUT - Replace entire Question (must send full payload)
      */
     @Transactional
-    public QuestionDto replaceQuestion(Integer id, QuestionDto newDto) {
+    public QuestionDto replaceQuestion(Integer id, QuestionRequestDto newDto) {
         log.info("Replacing question with id={} with new data", id);
         Question existingQuestion = questionRepository.findById(id)
                 .orElseThrow(() -> {
@@ -110,12 +108,12 @@ public class QuestionService {
      * PATCH - Partial update (only provided fields updated)
      */
     @Transactional
-    public QuestionDto updateQuestion(Integer id, QuestionDto updatedDto) {
-        log.info("Partially updating question with id={}", id);
-        Question existingQuestion = questionRepository.findById(id)
+    public QuestionDto updateQuestion(Integer questionId, QuestionDto updatedDto) {
+        log.info("Partially updating question with questionId={}", questionId);
+        Question existingQuestion = questionRepository.findById(questionId)
                 .orElseThrow(() -> {
-                    log.warn("Question not found with id: {}", id);
-                    return new IllegalArgumentException("Question not found with id: " + id);
+                    log.warn("Question not found with questionId: {}", questionId);
+                    return new IllegalArgumentException("Question not found with questionId: " + questionId);
                 });
 
         if (updatedDto.getQuestionTitle() != null) {
@@ -132,7 +130,7 @@ public class QuestionService {
         }
 
         if (updatedDto.getOptions() != null && !updatedDto.getOptions().isEmpty()) {
-            log.debug("Updating options for question id={}", id);
+            log.debug("Updating options for question id={}", questionId);
             Map<Integer, QuestionOptions> existingOptionsMap = existingQuestion.getOptions().stream()
                     .collect(Collectors.toMap(QuestionOptions::getId, o -> o));
 
@@ -158,7 +156,7 @@ public class QuestionService {
         }
 
         Question updatedQuestion = questionRepository.save(existingQuestion);
-        log.debug("Partial update for question id={} completed successfully", id);
+        log.debug("Partial update for question questionId={} completed successfully", questionId);
         return QuestionDto.fromEntity(updatedQuestion);
     }
 
@@ -203,7 +201,7 @@ public class QuestionService {
             log.warn("Question not found with id={}", quizQuestionDto.getQuestionId());
             return new IllegalArgumentException("Question not found with id " + quizQuestionDto.getQuestionId());
         });
-        
+
         QuizQuestion quizQuestion = quizQuestionDto.toEntity();
         return QuizQuestionDto.fromEntity(quizQuestionRepository.save(quizQuestion));
     }
